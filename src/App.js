@@ -1,11 +1,26 @@
 import logo from './logo.svg';
 import './App.css';
 
+import Button from 'react-bootstrap/Button';
+import Navbar from 'react-bootstrap/Navbar';
+
+import Container from 'react-bootstrap/Container';
+
 function App() {
   return (
     <div className="App">
+      <Navbar sticky="top" bg="dark">
+        <Container>
+          <Navbar.Brand bsPrefix="lp-header">The Light Project</Navbar.Brand>
+        </Container>
+        <Container className="justify-content-end">
+          <Button variant="primary">Connect Wallet</Button>
+        </Container>
+      </Navbar>
+  
+  
+
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
         <p>
           Edit <code>src/App.js</code> and save to reload.
         </p>
@@ -17,6 +32,9 @@ function App() {
         >
           Learn React
         </a>
+        <p>
+          <Button variant="primary">Primary</Button>
+        </p>
       </header>
     </div>
   );

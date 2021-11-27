@@ -38,6 +38,16 @@ class App extends React.Component{
     //register for events
     window.ethereum.on('accountsChanged', this.handleAccountsChanged);
     window.ethereum.on('chainChanged', this.handleNetworkChanged);
+
+    lightProj.events.LightToggled({}, function(error, event){ console.log(event); })
+      .on("connected", function(subscriptionId){
+        console.log(subscriptionId);
+      })
+      .on('data', this.updateLightList)
+      .on('error', function(error, receipt) { 
+        // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
+          console.log("err: "+error);
+      });
   }
 
   handleAccountsChanged(accounts){
@@ -72,15 +82,6 @@ class App extends React.Component{
           usrWeb3
         });
         this.updateLightList();
-
-        this.state.lightProjContract.events.LightToggled({}, function(error, event){ console.log(event); })
-      .on('data', this.updateLightList)
-      .on('changed', function(event){
-          // remove event from local database
-      })
-      .on('error', function(error, receipt) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
-          console.log("err: "+error);
-      });
       }
     }
   }
@@ -137,25 +138,10 @@ class App extends React.Component{
       <div className="App">
        <LightHeader userAddress={this.state.usrAddr} onConnect={() => this.handleConnect()} />
        <LightsDisplay onChange={this.handleLightChange} lightArray={this.state.nftArray} />
-       
-       {/*<p/>
-       <table>
-       {this.state.nftArray.map(light => (
-         <tr key={light.id}>
-           <td>{light.id}</td>
-           <td>{light.name}</td>
-           <td>{light.description}</td>
-           <td>{light.image}</td>
-           <td><img src={light.image}/></td>
-         </tr>
-       ))
-       }
-      </table>*/}
-
+       <p/>
       </div>
     );
   }
 }
-
 
 export default App;

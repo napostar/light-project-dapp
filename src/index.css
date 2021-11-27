@@ -1,0 +1,15 @@
+.myCarousel {
+    margin-left: auto;
+    margin-right: auto;
+    width: 66vw;
+    min-width: 30rem;
+    text-align: center;
+}
+
+.jumbotron {
+    margin: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+    width: 66vw;
+    min-width: 30rem;
+}

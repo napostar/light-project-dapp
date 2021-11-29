@@ -8,7 +8,16 @@ import './index.css';
 class LightsDisplay extends React.Component {
     constructor(props){
         super(props);
+        this.state={index:0};
         this.onToggle = this.onToggle.bind(this);
+        this.handleSelect = this.handleSelect.bind(this);
+    }
+
+    componentDidUpdate(prevProps){
+      if(prevProps.lightArray !== this.props.lightArray){
+        //need to update the index to a valid value in the new array
+        this.setState({index: 0});
+      }
     }
     
     onToggle(id){
@@ -17,6 +26,10 @@ class LightsDisplay extends React.Component {
         if(this.props.onChange)
             this.props.onChange(id);
     }
+
+    handleSelect(selectedIndex, e){
+      this.setState({index: selectedIndex});
+    };
 
     render() {
       return (
@@ -31,7 +44,7 @@ class LightsDisplay extends React.Component {
             {this.props.lightArray && this.props.lightArray.length > 0 ?
 
             
-                <Carousel className="myCarousel"  interval={null}>
+                <Carousel className="myCarousel"  interval={null} activeIndex={this.state.index} onSelect={this.handleSelect} >
                     {this.props.lightArray.map(light => (
                         <Carousel.Item key={light.id}>
                         <img 

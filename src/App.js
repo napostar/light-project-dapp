@@ -47,6 +47,7 @@ class App extends React.Component{
       .on('error', function(error, receipt) { 
         // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
           console.log("err: "+error);
+          console.log("receipt:"+receipt);
       });
   }
 
@@ -90,21 +91,31 @@ class App extends React.Component{
     console.log("Balance: "+result);
   }
 
+  async fetchNFTData(lightId){
+    const lightURI = await this.state.lightProjContract.methods.tokenURI(lightId).call();
+    const response = await fetch(lightURI);
+    const lightJSON = await response.json();
+    const nft = {id: lightId, name: lightJSON.name, description: lightJSON.description, image: lightJSON.image};
+    return nft;
+  }
+
   async updateLightList(){
+
     if(this.state.usrAddr){
       //update the list of elements that are currently being rendered by the carousel
       const balance = await this.state.lightProjContract.methods.balanceOf(this.state.usrAddr).call();
       console.log("balance: "+balance);
       let lightList = [];
-      let lightIdList = [];
+
+      const genNFT = await this.fetchNFTData(0);
+      lightList.push(genNFT);
+
       for(var i=0 ; i < balance ; i++){
         const lightId = await this.state.lightProjContract.methods.tokenOfOwnerByIndex(this.state.usrAddr,i).call();
-        const lightURI = await this.state.lightProjContract.methods.tokenURI(lightId).call();
-        const response = await fetch(lightURI);
-        const lightJSON = await response.json();
-        const nft = {id: lightId, name: lightJSON.name, description: lightJSON.description, image: lightJSON.image};
-        lightList.push(nft);
-        lightIdList.push(lightId);
+        if(lightId > 0){ //don't fetch genesis light again
+          const nft = await this.fetchNFTData(lightId);
+          lightList.push(nft);
+        }
       }
       console.log("list:"+lightList);
       this.setState({nftArray : lightList});
@@ -117,7 +128,6 @@ class App extends React.Component{
   handleLightChange(id){
     //handle sending the toggle light in the contract for the specified NFT ID
     console.log("Hanlding Change Light:"+id);  
-
 
     // using the event emitter
     this.state.usrLightProjContract.methods.toggleLight(id).send({from: this.state.usrAddr})

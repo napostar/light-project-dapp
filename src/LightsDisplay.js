@@ -41,33 +41,35 @@ class LightsDisplay extends React.Component {
                     {/*<button class="btn btn-outline-secondary" type="button">Example button</button>*/}
                 </div>
             </div>
-            {this.props.lightArray && this.props.lightArray.length > 0 ?
-
-            
-                <Carousel className="myCarousel"  interval={null} activeIndex={this.state.index} onSelect={this.handleSelect} >
-                    {this.props.lightArray.map(light => (
-                        <Carousel.Item key={light.id}>
-                        <img 
-                            className="d-block w-100"
-                            src={light.image}
-                            alt={light.name}
-                        />
-                        <Carousel.Caption>
-                            <h3>{light.name}</h3>
-                            <p>{light.description}</p>
-                            <Button onClick={() => this.onToggle(light.id)} >Toggle</Button>
-                        </Carousel.Caption>
-                    </Carousel.Item>
-                    ))}
-                </Carousel>
-                : 
-                <div class="jumbotron">
-                <div class="p-5 bg-light border rounded-3">
-                    <h2>No NFT Lights Found.</h2>
-                    <p>Connect your wallet to see your light NFTs here!</p>
-                    {/*<button class="btn btn-outline-secondary" type="button">Example button</button>*/}
-                </div>
-            </div>
+            { (this.props.lightArray && this.props.lightArray.length > 0 ) ?
+               <> <h2 class="myCenter">My Light NFTs</h2>
+            <Carousel className="myCarousel"  interval={null} activeIndex={this.state.index} onSelect={this.handleSelect} >
+            {this.props.lightArray.map(light => (
+                <Carousel.Item key={light.id}>
+                <img 
+                    className="d-block w-100"
+                    src={light.image}
+                    alt={light.name}
+                />
+                <Carousel.Caption>
+                    <h3>{light.name}</h3>
+                    <p>{light.description}</p>
+                    <Button onClick={() => this.onToggle(light.id)} >Toggle</Button>
+                </Carousel.Caption>
+            </Carousel.Item>
+            ))}
+        </Carousel></>
+                : <>
+                {this.props.usrAddr ? 
+                  <div class="jumbotron">
+                    <div class="p-5 bg-light border rounded-3">
+                        <h2>No NFT Lights Found.</h2>
+                          <p>You have zero light NFTs in your wallet.</p>
+                    </div>
+                  </div>
+                  : <></>
+                  }
+                </>
             }
         </>
       );

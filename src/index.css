@@ -10,6 +10,19 @@
     margin: 1rem;
     margin-left: auto;
     margin-right: auto;
+    width: 90vw;
+    min-width: 30rem;
+}
+
+.genCard {
+    margin-left: auto;
+    margin-right: auto;
     width: 66vw;
     min-width: 30rem;
+}
+
+h2.myCenter {
+    margin-left: auto;
+    margin-right: auto; 
+    text-align: center; 
 }

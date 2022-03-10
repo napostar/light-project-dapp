@@ -7,6 +7,8 @@ import {LIGHT_PROJ_ABI, LIGHT_PROJ_ADDRESS} from './config';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 
+
+
 class App extends React.Component{
   constructor(props){
     super(props);
@@ -28,11 +30,13 @@ class App extends React.Component{
     this.updateLightList = this.updateLightList.bind(this);
     this.updateGenesis = this.updateGenesis.bind(this);
   }
+   
 
   async componentDidMount() {
     //initialize the web3 object and store it in state
     //const web3 = new Web3(Web3.givenProvider || 'http://127.0.0.1:8545');
-    const web3 = new Web3("ws://127.0.0.1:8545/");
+    //const web3 = new Web3("ws://127.0.0.1:8545/");
+    const web3 = new Web3("wss://polygon-mumbai.g.alchemy.com/v2/X5yiJfvgIclpFPQH0o0PUlaKi0jmssX2");
     this.setState({web3});
 
     //load contract
@@ -52,9 +56,7 @@ class App extends React.Component{
     window.ethereum.on('chainChanged', this.handleNetworkChanged);
 
     //register for light toggle events on the contract.  
-    const sub = lightProj.events.LightToggled({
-      filter:{tokenId:"0"} //filter for only the genesis NFT.  Will register separately for others...
-    })
+    const sub = lightProj.events.LightToggled()
       .on('connected', function(subscriptionId){
         console.log("LightToggled Subscription: "+subscriptionId);
       })
@@ -177,42 +179,31 @@ class App extends React.Component{
 
   //query the contract and update the fee.
   async updateFeeAmt(){
-    const fee = await this.state.lightProjContract.methods.getGenesisFee().call(); 
+    const fee = await this.state.lightProjContract.methods.getTokenFee(0).call(); 
     this.setState({fee});
   }
 
   handleLightChange(id){
     //handle sending the toggle light in the contract for the specified NFT ID
-    
-    if(id === 0) //if the ID is equal to zero, call the 
-    {
-      // using the event emitter
-      this.state.usrLightProjContract.methods.toggleGenesis().send({from: this.state.usrAddr, value: this.state.fee})
-        .on('transactionHash', function(hash){ //transaction added
-            console.log("Transaction Hash");
-        })
-        .on('receipt', function(receipt){//transaction completed
-            console.log("receipt");
-            console.log(receipt);
-        })
-        .on('error', function(error, receipt) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
-            console.log(error);
-        });
-    }
-    else{ //if ID is greater than zero, call the toggleLight function on the contract
-      // using the event emitter
-      this.state.usrLightProjContract.methods.toggleLight(id).send({from: this.state.usrAddr})
-        .on('transactionHash', function(hash){ //transaction added
-            console.log("Transaction Hash");
-        })
-        .on('receipt', function(receipt){//transaction completed
-            console.log("receipt");
-            console.log(receipt);
-        })
-        .on('error', function(error, receipt) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
-            console.log(error);
-        });
-    }
+    //call the toggleLight function on the contract
+    // using the event emitter
+    this.state.usrLightProjContract.methods.toggleLight(id).send({from: this.state.usrAddr, value: this.state.fee})
+      .on('transactionHash', function(hash){ //transaction added
+          console.log("Transaction Hash");
+      })
+      .on('receipt', function(receipt){//transaction completed
+          console.log("receipt");
+          console.log(receipt);
+         // this.updateGenesis();
+      })
+      .on('error', function(error, receipt) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
+          console.log(error);
+      });
+  }
+
+  wrapWithGateway(ipfsURI){
+    const strArray = ipfsURI.split('ipfs://');
+    return 'http://ipfs.io/ipfs/' + strArray[1];
   }
 
   render(){
@@ -225,7 +216,7 @@ class App extends React.Component{
        <><h2 class="myCenter">Example Light NFT</h2>
        <Card style={{ width: '66vw' }} className="genCard">
         
-        <Card.Img variant="top" src={this.state.genNFT.image} />
+        <Card.Img variant="top" src={this.wrapWithGateway(this.state.genNFT.image)} />
         <Card.Body>
           <Card.Title>{this.state.genNFT.name}</Card.Title>
           <Card.Text>

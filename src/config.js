@@ -1,6 +1,34 @@
 //address on mumbai
 export const LIGHT_PROJ_ADDRESS = '0xBbe509897243208CDA6f36Ab3B83f4bE570c09c8'
 
+export const NETWORK_CHAIN_ID = 80001;
+
+export const networks = {
+	polygon: {
+	  chainId: `0x${Number(137).toString(16)}`,
+	  chainName: "Polygon Mainnet",
+	  nativeCurrency: {
+		name: "MATIC",
+		symbol: "MATIC",
+		decimals: 18
+	  },
+	  rpcUrls: ["https://polygon-rpc.com/"],
+	  blockExplorerUrls: ["https://polygonscan.com/"]
+	},
+	mumbai: {
+		chainId: `0x${Number(80001).toString(16)}`,
+		chainName: "Mumbai",
+		nativeCurrency: {
+		  name: "MATIC",
+		  symbol: "MATIC",
+		  decimals: 18
+		},
+		rpcUrls: ["https://matic-mumbai.chainstacklabs.com/"],
+		blockExplorerUrls: ["https://mumbai.polygonscan.com"]
+	  }
+	};
+
+
 //abi on mumbai
 export const LIGHT_PROJ_ABI =[
 	{

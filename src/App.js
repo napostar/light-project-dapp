@@ -1,13 +1,11 @@
 import React from 'react';
 import './App.css';
 import LightHeader from './LightHeader';
-import LightsDisplay from './LightsDisplay';
+
 import Web3 from 'web3';
-import {LIGHT_PROJ_ABI, LIGHT_PROJ_ADDRESS} from './config';
+import {LIGHT_PROJ_ABI, LIGHT_PROJ_ADDRESS, networks} from './config';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
-
-
 
 class App extends React.Component{
   constructor(props){
@@ -15,27 +13,15 @@ class App extends React.Component{
     this.state = {
       usrAddr : null,
       usrConnected : false,
-      lightArray : [
-        {id: 1, image: "holder.js/800x600?text=First slide&bg=373940",
-        name: "First Slide LaBel",
-        description: "This slide came first, and thus will be rendered.... first!"},
-        {id: 2, image: "holder.js/800x600?text=Second slide&bg=282c34",
-        name: "Seccond Slide lAbEl",
-        description: "This slide is number 2. No one cares..."}],
-      nftArray : [],
       genNFT : null,
     };
     this.handleLightChange = this.handleLightChange.bind(this);
     this.handleAccountsChanged = this.handleAccountsChanged.bind(this);
-    this.updateLightList = this.updateLightList.bind(this);
     this.updateGenesis = this.updateGenesis.bind(this);
   }
    
-
   async componentDidMount() {
     //initialize the web3 object and store it in state
-    //const web3 = new Web3(Web3.givenProvider || 'http://127.0.0.1:8545');
-    //const web3 = new Web3("ws://127.0.0.1:8545/");
     const web3 = new Web3("wss://polygon-mumbai.g.alchemy.com/v2/X5yiJfvgIclpFPQH0o0PUlaKi0jmssX2");
     this.setState({web3});
 
@@ -67,12 +53,10 @@ class App extends React.Component{
           console.log("receipt:"+receipt);
       });
       this.setState({lightSub: sub}); 
-      this.updateFeeAmt();
-      
   }
 
   componentWillUnmount(){
-    //TODO unregister for events here
+    //unregister for events here
     this.state.lightSub.unsubscribe();
   }
 
@@ -80,30 +64,36 @@ class App extends React.Component{
     // Time to reload your interface with accounts[0]!
     this.setState({usrAddr : accounts[0]});
     console.log("handleAccountsChanged: "+accounts[0]);
-    if(this.state.usrSubscription){
-      this.state.usrSubscription.unsubscribe();
-      this.setState({usrSubscription:null});
-    }
-    this.updateLightList();
   }
 
-  handleNetworkChanged(chainId){
+  handleNetworkChanged(newChainId){
     // Time to reload your interface with the new networkId
     //disable buttons if on wrong network
+    //const chainId = 137 // Polygon Mainnet
+    //80001 is mumbai
+    
+    console.log('Changed to chainID:'+newChainId);
   }
 
   async handleConnect(){
     //Connect the users wallet here and update display
-    console.log("clicked");
     if(!this.state.usrConnected){
       //connect
       const usrWeb3 = new Web3(Web3.givenProvider);
-      const accounts = await usrWeb3.eth.requestAccounts().catch((err) => { console.error("myError:"+err)});
+      const accounts = await usrWeb3.eth.requestAccounts().catch((err) => { console.error("error during requestAccounts:"+err)});
+      console.log('chainID:'+window.ethereum.networkVersion);
+
+      await window.ethereum.request({
+        method: "wallet_addEthereumChain",
+        params: [
+          {
+            ...networks['mumbai']
+          }
+        ]
+      });
       
       //if there are accounts, then login was successful
-      //console.log(accounts);
       if(accounts){
-        //
         //load contract
         const usrLightProj = new usrWeb3.eth.Contract(LIGHT_PROJ_ABI, LIGHT_PROJ_ADDRESS);
         this.setState({
@@ -111,20 +101,16 @@ class App extends React.Component{
           usrAddr : accounts[0],
           usrWeb3
         });
-        this.updateLightList();
         this.updateFeeAmt();
       }
     }
   }
 
-  handleBalanceOf(error, result){
-    console.log("Balance: "+result);
-  }
-
   //Update the data of the genesis light
   async updateGenesis(){
-    const genNFT = await this.fetchNFTData(0);
-    this.setState({genNFT});
+    console.log("Update Genesis");
+    const newGenNFT = await this.fetchNFTData(0);
+    this.setState({genNFT: newGenNFT});
   }
 
   //get the NFT URI data
@@ -134,47 +120,6 @@ class App extends React.Component{
     const lightJSON = await response.json();
     const nft = {id: lightId, name: lightJSON.name, description: lightJSON.description, image: lightJSON.image};
     return nft;
-  }
-
-  //build list of user's light NFTs
-  async updateLightList(){
-    let lightList = [];
-    let lightIds = [];
-
-    if(this.state.usrAddr){
-      //update the list of elements that are currently being rendered by the carousel
-      const balance = await this.state.lightProjContract.methods.balanceOf(this.state.usrAddr).call();  
-
-      //fetch any other owned NFTs
-      for(var i=0 ; i < balance ; i++){
-        const lightId = await this.state.lightProjContract.methods.tokenOfOwnerByIndex(this.state.usrAddr,i).call();
-        if(lightId > 0){ //don't fetch genesis light again
-          const nft = await this.fetchNFTData(lightId);
-          lightList.push(nft);
-          lightIds.push(lightId);
-        }
-      }
-      this.registerUserLights(lightIds);
-    }
-    this.setState({nftArray : lightList});
-  }
-
-  //register for LightToggled events, but filtered for just the user's owned NFTs
-  registerUserLights(lightIds){
-    //register for light toggle events on the contract.  
-    const sub = this.state.usrLightProjContract.events.LightToggled({
-      filter:{tokenId:lightIds} //filter for only the genesis NFT.  Will register separately for others...
-    })
-      .on('connected', function(subscriptionId){
-        console.log("LightToggled Subscription: "+subscriptionId);
-      })
-      .on('data', this.updateLightList)
-      .on('error', function(error, receipt) { 
-        // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
-          console.log("err: "+error);
-          console.log("receipt:"+receipt);
-      });
-      this.setState({usrSubscription:sub});
   }
 
   //query the contract and update the fee.
@@ -189,11 +134,11 @@ class App extends React.Component{
     // using the event emitter
     this.state.usrLightProjContract.methods.toggleLight(id).send({from: this.state.usrAddr, value: this.state.fee})
       .on('transactionHash', function(hash){ //transaction added
-          console.log("Transaction Hash");
+          //console.log("Transaction Hash");
       })
       .on('receipt', function(receipt){//transaction completed
-          console.log("receipt");
-          console.log(receipt);
+          //console.log("receipt");
+          //console.log(receipt);
          // this.updateGenesis();
       })
       .on('error', function(error, receipt) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
@@ -206,32 +151,38 @@ class App extends React.Component{
     return 'http://ipfs.io/ipfs/' + strArray[1];
   }
 
+
   render(){
     return (
       <div className="App">
        <LightHeader userAddress={this.state.usrAddr} onConnect={() => this.handleConnect()} />
-       <LightsDisplay onChange={this.handleLightChange} lightArray={this.state.nftArray} usrAddr={this.state.usrAddr} genesisLight={this.state.genNFT} genFee={this.state.fee}/>
-       <p/>
+       <div className="jumbotron">
+          <div className="p-5 bg-light border rounded-3">
+              <h2>Dynamic NFTs</h2>
+              <span>The light project is about an exploration of dynamic NFTs, their utility, and functionality. Connect your wallet to interact with our Genesis Light, on-chain!</span>
+          </div>
+       </div>
        {this.state.genNFT ? 
-       <><h2 class="myCenter">Example Light NFT</h2>
-       <Card style={{ width: '66vw' }} className="genCard">
-        
-        <Card.Img variant="top" src={this.wrapWithGateway(this.state.genNFT.image)} />
-        <Card.Body>
-          <Card.Title>{this.state.genNFT.name}</Card.Title>
-          <Card.Text>
-            {this.state.genNFT.description} {this.state.fee ? 
-             <div>Cost to toggle this light is {this.state.web3.utils.fromWei(this.state.fee+"")} MATIC.</div> : <></>}
-          </Card.Text>
-          <Button variant="primary" onClick={() => this.handleLightChange(0)}>Toggle Light</Button>
-        </Card.Body>
-      </Card></>
-       : <p></p>}
-       <p></p>
-       Footer goes here.
+            <div>
+              <h2 className="myCenter">Genesis Light</h2>
+              <Card style={{ width: '50vw' }} className="genCard">
+                
+                <Card.Img variant="top" src={this.wrapWithGateway(this.state.genNFT.image)} />
+                <Card.Body>
+                  <Card.Title>{this.state.genNFT.name}</Card.Title>
+                  <Card.Text>
+                    {this.state.genNFT.description} 
+                    Press "Toggle Light" to turn the light on or off, it's state is stored on-chain!
+                  </Card.Text>
+                  <Button variant="primary" onClick={() => this.handleLightChange(0)}>Toggle Light</Button>
+                </Card.Body>
+              </Card>
+            </div>
+       : <span></span>};
+       <span></span>
+       
       </div>
     );
   }
 }
-
 export default App;

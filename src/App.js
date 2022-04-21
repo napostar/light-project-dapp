@@ -1,3 +1,7 @@
+//TODOS:
+// -Add error handling for transactions
+// -add warnings telling user to use the right network
+// -add status message for when transaction is pending/working...
 import React from 'react';
 import './App.css';
 import LightHeader from './LightHeader';
@@ -91,7 +95,7 @@ class App extends React.Component{
           }
         ]
       });
-      
+
       //if there are accounts, then login was successful
       if(accounts){
         //load contract

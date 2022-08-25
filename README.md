@@ -1,4 +1,6 @@
-# Getting Started with Create React App
+# The Light Project
+
+Visit at [https://thelightproject.io/](https://thelightproject.io/)  (no caching, so give it time to load the image...)
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
